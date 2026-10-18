@@ -1,0 +1,9 @@
+.DS_Store
+.env
+.env.*
+*.log
+__pycache__/
+/tmp/
+*.y4m
+*.mjpeg
+node_modules/
