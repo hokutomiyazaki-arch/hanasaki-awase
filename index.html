@@ -3,81 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1a20">
+<meta name="theme-color" content="#070707">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="鼻先あわせ">
-<meta name="description" content="目を閉じたまま、鼻先を狙った所へ向けられるかをスマホのカメラで測る。FNTアドバンス講習の受講者用。">
-<title>鼻先あわせ｜FNT</title>
+<meta name="apple-mobile-web-app-title" content="首の固有受容感覚">
+<meta name="description" content="首の固有受容感覚のテスト。目を閉じたまま、頭を真ん中や覚えた点へ戻せるかをスマホのカメラで測る。Functional Neuro Training。">
+<title>首の固有受容感覚のテスト｜FNT</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&family=Shippori+Mincho:wght@500;700;800&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
 <style>
-/* ===== FNT標準の外まわり（手本：~/FNT-Apps/pinto-8） ===== */
-:root{ --bg0:#0b1a20; --bg1:#123138; --bg2:#16414a; --accent:#7fe0cd; --accent2:#3fa895; --accentInk:#06231d;
-  --ink:#f2faf7; --muted:#a8c6bf; --line:rgba(255,255,255,.12); --card:rgba(255,255,255,.07); --danger:#ffb4a8; --vh:1vh; }
+/* ===== FNT標準の外まわり（手本：~/FNT-Apps/pinto-8。VORC トレーニング vorc-trainer と同じ黒×金。2026-10-18 夜 宮崎さん「VORC アプリみたいにデザインをプロフェッショナルにかっこよく」） ===== */
+:root{ --bg0:#050505; --bg1:#0e0e0f; --bg2:#1a1916; --accent:#d8bd84; --accent2:#a8874f; --accentInk:#141008;
+  --ink:#f4f1ea; --muted:#9d978b; --line:rgba(216,189,132,.18); --card:rgba(255,255,255,.035); --danger:#ffb4a8; --vh:1vh;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN",serif; --latin:"Cormorant Garamond","Times New Roman",serif; }
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html,body{ overflow-x:hidden; max-width:100%; }
-html{ height:100%; -webkit-text-size-adjust:100%; background:#0b1a20; }
-body{ font-family:"M PLUS Rounded 1c", system-ui, sans-serif; font-weight:700; color:var(--ink); line-height:1.7;
-  background:radial-gradient(120% 90% at 50% 6%, var(--bg2) 0%, var(--bg1) 44%, var(--bg0) 100%); background-attachment:fixed;
+html{ height:100%; -webkit-text-size-adjust:100%; background:#050505; }
+body{ font-family:"Noto Sans JP", system-ui, sans-serif; font-weight:500; letter-spacing:.02em; color:var(--ink); line-height:1.7;
+  background:radial-gradient(110% 70% at 50% -10%, var(--bg2) 0%, var(--bg1) 45%, var(--bg0) 100%); background-attachment:fixed;
   min-height:100vh; min-height:100dvh; min-height:calc(var(--vh) * 100);
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 body.playing{ overflow:hidden; touch-action:none; }
-button{ font-family:inherit; font-weight:700; cursor:pointer; border:none; }
+button{ font-family:inherit; font-weight:500; cursor:pointer; border:none; letter-spacing:.06em; }
 a{ color:var(--accent); }
 :focus-visible{ outline:3px solid var(--accent); outline-offset:3px; border-radius:8px; }
 .hide{ display:none!important; }
 
 #splash{ position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;
-  background:radial-gradient(120% 90% at 50% 20%, var(--bg2) 0%, var(--bg1) 45%, var(--bg0) 100%); transition:opacity .45s ease, visibility .45s ease; }
+  background:radial-gradient(90% 60% at 50% 38%, #1c1a15 0%, #0b0b0b 55%, #030303 100%); transition:opacity .45s ease, visibility .45s ease; }
 #splash.hide{ display:flex!important; opacity:0; visibility:hidden; pointer-events:none; }
-#splash img{ width:132px; height:132px; margin-bottom:22px; border-radius:26px; }
-#splash .fnt{ font-size:13px; letter-spacing:.24em; color:var(--muted); margin-bottom:14px; }
-#splash h1{ font-size:32px; font-weight:800; color:var(--accent); margin-bottom:10px; }
-#splash .lead{ font-size:14px; color:var(--muted); margin-bottom:30px; }
-#splash .tapstart{ min-height:52px; padding:14px 34px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); animation:breathe 2.4s ease-in-out infinite; }
+#splash img{ width:96px; height:96px; margin-bottom:30px; border-radius:22px; box-shadow:0 0 0 1px var(--line),0 20px 60px rgba(0,0,0,.6); }
+#splash .fnt{ font-family:var(--latin); font-size:13px; letter-spacing:.42em; color:var(--accent); margin-bottom:18px; }
+#splash h1{ font-family:var(--serif); font-size:34px; font-weight:700; color:var(--ink); letter-spacing:.12em; margin-bottom:6px; }
+#splash h1 span{ display:block; font-family:var(--latin); font-size:58px; font-weight:500; letter-spacing:.18em; color:var(--accent); line-height:1.1; margin-bottom:6px; }
+#splash .rule{ width:56px; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); margin:14px auto 16px; }
+#splash .lead{ font-family:var(--serif); font-size:15px; color:var(--muted); letter-spacing:.14em; line-height:2; margin-bottom:38px; }
+#splash .tapstart{ min-height:52px; padding:14px 46px; border-radius:999px; font-size:15px; font-weight:500; letter-spacing:.24em; color:var(--accent); background:transparent; border:1px solid var(--accent); animation:breathe 2.8s ease-in-out infinite; }
 #splash .note{ margin-top:22px; font-size:12px; color:var(--muted); }
 #splash .copy{ position:absolute; bottom:calc(20px + env(safe-area-inset-bottom)); font-size:11px; color:var(--muted); }
-@keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+@keyframes breathe{ 0%,100%{ box-shadow:0 0 0 0 rgba(216,189,132,0); } 50%{ box-shadow:0 0 28px 2px rgba(216,189,132,.28); } }
 
 .app{ width:100%; max-width:480px; margin:0 auto; min-height:100vh; min-height:calc(var(--vh) * 100); display:flex; flex-direction:column; }
 header{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px 4px; }
 .logo{ display:flex; align-items:center; gap:10px; }
 .logo img{ width:34px; height:34px; }
-.logo b{ font-size:16px; font-weight:800; letter-spacing:.02em; }
-.menuBtn{ width:46px; height:46px; border-radius:12px; background:var(--card); color:var(--ink); font-size:22px; display:flex; align-items:center; justify-content:center; }
+.logo b{ font-family:var(--latin); font-size:20px; font-weight:600; letter-spacing:.28em; color:var(--accent); }
+.logo b small{ font-family:var(--serif); font-size:12px; letter-spacing:.16em; color:var(--muted); margin-left:8px; }
+.menuBtn{ width:46px; height:46px; border-radius:50%; background:transparent; border:1px solid var(--line); color:var(--accent); font-size:18px; display:flex; align-items:center; justify-content:center; }
 .app main{ flex:1; display:flex; flex-direction:column; padding:8px 18px 4px; }
-.screen h2{ font-size:22px; font-weight:800; line-height:1.5; margin:4px 0 8px; }
+.screen h2{ font-family:var(--serif); font-size:23px; font-weight:700; line-height:1.6; letter-spacing:.08em; margin:10px 0 10px; }
 .desc{ font-size:14.5px; color:var(--muted); line-height:1.85; }
 .desc b{ color:var(--ink); }
 .loadState{ font-size:13px; color:var(--muted); margin:8px 0 4px; }
 .loadState.err{ color:var(--danger); }
-.card{ margin:14px 0 4px; padding:14px 14px 12px; border-radius:18px; background:var(--card); border:1px solid var(--line); }
-.card h3{ font-size:18px; font-weight:800; color:var(--accent); }
+.card{ position:relative; margin:18px 0 4px; padding:20px 18px 16px; border-radius:18px; background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)); border:1px solid var(--line); }
+.card::before{ content:''; position:absolute; left:18px; right:18px; top:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:.7; }
+.card h3{ font-family:var(--serif); font-size:20px; font-weight:700; letter-spacing:.14em; color:var(--accent); }
+.card h3 em{ font-family:var(--latin); font-style:normal; font-size:12px; letter-spacing:.3em; color:var(--muted); margin-left:10px; }
 .card p{ font-size:14px; color:var(--ink); margin:2px 0 6px; }
-.card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0f1115; border-radius:12px; }
-.btn{ width:100%; min-height:54px; padding:14px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); margin:6px 0; }
+.card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0b0b0b; border-radius:12px; }
+.opt{ font-size:11.5px; letter-spacing:.2em; color:var(--muted); margin:14px 0 6px; }
+.opt i{ font-style:normal; letter-spacing:.04em; opacity:.8; }
+.chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.chip{ flex:1; min-width:52px; min-height:42px; padding:6px 4px; border-radius:999px; background:transparent; border:1px solid rgba(255,255,255,.14); color:var(--muted); font-size:13.5px; transition:all .15s; }
+.chip.on{ background:rgba(216,189,132,.12); color:var(--accent); border-color:var(--accent); }
+.btn{ width:100%; min-height:54px; padding:14px; border-radius:999px; font-size:15px; font-weight:700; letter-spacing:.2em; color:var(--accentInk); background:linear-gradient(135deg,#ead3a0 0%,#cfb077 45%,#a8874f 100%); box-shadow:0 8px 24px rgba(168,135,79,.18); margin:6px 0; }
 .btn:disabled{ opacity:.4; }
-.axes{ display:flex; gap:8px; margin:2px 0 6px; }
-.axes button{ flex:1; min-height:46px; border-radius:14px; font-size:16px; font-weight:800; color:var(--ink); background:transparent; border:1px solid var(--line); }
-.axes button.on{ color:var(--accentInk); background:var(--accent); border-color:var(--accent); }
-.axesNote{ font-size:12px; opacity:.8; margin:0 0 4px; }
-.btn.ghost{ color:var(--ink); background:transparent; border:1px solid var(--line); }
+.btn.ghost{ color:var(--accent); background:transparent; border:1px solid var(--line); box-shadow:none; }
 .btn:active{ transform:translateY(1px); }
 .notes{ margin:16px 0 8px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.8; }
 footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:center; }
-.fnt-copy{ display:block; font-size:11px; letter-spacing:.14em; color:var(--muted); opacity:.8; }
+.fnt-copy{ display:block; font-family:var(--latin); font-size:12px; letter-spacing:.3em; color:var(--muted); opacity:.8; }
 /* 結果・記録 */
 .res{ background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin:8px 0; font-size:14px; line-height:1.75; font-weight:500; }
-.res b{ color:#ffd166; }
+.res b{ color:var(--accent); }
 .small{ font-size:12.5px; color:#aab; }
-.resHead{ font-size:17px; font-weight:800; color:var(--accent); margin:14px 0 0; }
+.resHead{ font-family:var(--serif); font-size:18px; font-weight:700; letter-spacing:.1em; color:var(--accent); margin:14px 0 0; }
 .when{ font-size:13px; color:var(--muted); }
 #copyArea{ position:absolute; left:-9999px; width:10px; height:10px; }
 .histItem{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:14px; background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:14.5px; line-height:1.6; }
@@ -92,7 +99,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 .side .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .side .top b{ font-size:16px; font-weight:800; }
 .side .closeBtn{ width:44px; height:44px; border-radius:12px; background:var(--card); color:var(--ink); font-size:20px; }
-.side h4{ font-size:12px; letter-spacing:.14em; color:var(--accent); margin:18px 0 8px; }
+.side h4{ font-size:11px; letter-spacing:.3em; color:var(--accent); margin:20px 0 8px; }
 .side .guide{ font-size:13px; color:var(--muted); line-height:1.85; font-weight:500; }
 .side .guide ol{ padding-left:20px; }
 .side .guide b{ color:var(--ink); }
@@ -106,13 +113,18 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 .switch input:checked + .slider{ background:var(--accent2); }
 .switch input:checked + .slider::before{ transform:translateX(24px); }
 .side .side-copy{ margin-top:auto; padding-top:22px; font-size:10.5px; letter-spacing:.1em; color:var(--muted); opacity:.7; }
-.toast{ position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:rgba(18,49,56,.98); border:1px solid var(--line); color:var(--ink); font-size:13.5px;
+.toast{ position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:rgba(20,19,16,.98); border:1px solid var(--line); color:var(--ink); font-size:13.5px;
   padding:12px 18px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:120; opacity:0; visibility:hidden; transition:opacity .25s ease, transform .25s ease, visibility .25s ease; max-width:88%; text-align:center; }
 .toast.show{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }
+#splash h1 span.lat{ font-size:25px; letter-spacing:.22em; margin-bottom:14px; }
+#splash h1 small{ display:block; font-size:22px; letter-spacing:.3em; color:var(--muted); margin-top:4px; }
+.logo b.jp{ font-family:var(--serif); font-size:16px; letter-spacing:.12em; }
+.logo b.jp small{ font-size:11px; }
+.card .chipsNote{ font-size:12.5px; color:var(--muted); margin:8px 0 2px; }
 
 /* ===== テストの画面（元：fnt-camera-check の #sMain まわりをそのまま） ===== */
-:where(#sMain) button{ font:inherit; font-size:17px; font-weight:700; border:0; border-radius:12px; padding:14px; width:100%; margin:5px 0; background:#2a6df4; color:#fff; cursor:pointer; }
-:where(#sMain) button.sub{ background:#2b2f38; }
+:where(#sMain) button{ font:inherit; font-size:16px; font-weight:700; letter-spacing:.12em; border:0; border-radius:999px; padding:14px; width:100%; margin:5px 0; background:linear-gradient(135deg,#ead3a0 0%,#cfb077 45%,#a8874f 100%); color:#141008; cursor:pointer; }
+:where(#sMain) button.sub{ background:transparent; color:#d8bd84; border:1px solid rgba(216,189,132,.35); }
 :where(#sMain) button:disabled{ opacity:.4; }
 #sMain{position:fixed;inset:0;background:#000;overflow:hidden;z-index:50;line-height:1.6;color:#f2f2f2}
 #stage{position:absolute;inset:0}
@@ -122,7 +134,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #sMain.dark #top{opacity:.25}
 #top{position:absolute;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 12px 14px;background:linear-gradient(rgba(0,0,0,.65),transparent);z-index:6;pointer-events:none}
 #title{font-size:14px;font-weight:700;color:#cfd3dc}
-.steps{display:flex;gap:3px;margin:0 0 4px}.steps span{flex:1;height:4px;border-radius:2px;background:#2b2f38}.steps span.on{background:#2a6df4}
+.steps{display:flex;gap:3px;margin:0 0 4px}.steps span{flex:1;height:4px;border-radius:2px;background:#2b2f38}.steps span.on{background:#d8bd84}
 #cue{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,520px);text-align:center;font-weight:800;font-size:clamp(23px,6.6vw,34px);line-height:1.45;padding:16px 16px;border-radius:18px;background:rgba(0,0,0,.62);text-shadow:0 2px 8px #000;pointer-events:none;z-index:5}
 #cue:empty{display:none}
 #near{position:absolute;left:50%;transform:translateX(-50%);width:min(92vw,520px);text-align:center;font-weight:800;font-size:clamp(19px,5.4vw,26px);line-height:1.45;padding:12px 14px 8px;border-radius:16px;background:rgba(0,0,0,.72);z-index:9;display:none}
@@ -132,10 +144,10 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #cue.huge{font-size:clamp(60px,22vw,110px)}
 #cue small{display:block;font-size:16px;font-weight:600;color:#dfe3ea;margin-top:8px;line-height:1.5}
 #cue canvas{display:block;margin:0 auto 6px;width:220px;height:170px}
-#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
-#bRedo{position:absolute;left:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
+#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
+#bRedo{position:absolute;left:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
 /* やめてトップへ（このアプリで足した。元はテストの途中で抜ける手段が無かった） */
-#bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
+#bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
 #top{padding-right:100px!important}
 #cue.top{top:calc(82px + env(safe-area-inset-top));transform:translateX(-50%);padding:8px 12px 12px}
 #cue.top canvas{width:170px;height:131px}
@@ -154,11 +166,12 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 </head>
 <body>
 
-<div id="splash" role="dialog" aria-label="鼻先あわせを開始">
+<div id="splash" role="dialog" aria-label="首の固有受容感覚のテストを開始">
   <img src="FNT512.png" alt="FNT ロゴ">
   <div class="fnt">FUNCTIONAL NEURO TRAINING</div>
-  <h1>鼻先あわせ</h1>
-  <p class="lead">目を閉じたまま、鼻先を狙った所へ。</p>
+  <h1><span class="lat">PROPRIOCEPTION</span>首の固有受容感覚<small>テスト</small></h1>
+  <div class="rule"></div>
+  <p class="lead">目を閉じたまま、<br>首は位置を覚えているか。</p>
   <button class="tapstart" id="tapStart">タップで開始</button>
   <p class="note">🔊 音声で案内します（メニューでオフにできます）</p>
   <div class="copy">© Functional Neuro Training</div>
@@ -166,39 +179,42 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 
 <div class="app" id="app">
   <header>
-    <div class="logo"><img src="FNT512-transparent.png" alt=""><b>鼻先あわせ</b></div>
+    <div class="logo"><img src="FNT512-transparent.png" alt=""><b class="jp">首の固有受容感覚<small>テスト</small></b></div>
     <button class="menuBtn" id="menuBtn" aria-label="メニューを開く" aria-haspopup="true">☰</button>
   </header>
   <main>
     <section class="screen" id="sHome">
-      <h2>目を閉じたまま、<br>鼻先を狙った所へ向けられるか</h2>
-      <p class="desc">スマホのカメラで<b>鼻先の位置</b>を読みます。スマホを顔の前に持ち、画面の点に鼻先（赤い点）を合わせてから、目を閉じて動かします。</p>
+      <h2>目を閉じたまま、<br>首は位置を覚えているか</h2>
+      <p class="desc"><b>首の固有受容感覚</b>（首の筋肉や関節が、頭の向きを脳に伝える働き）を測ります。スマホを顔の前に持ち、画面の点に<b>鼻先（赤い点）</b>を合わせてから、目を閉じて頭を動かします。鼻先の位置はスマホのカメラで読みます。</p>
       <p class="loadState" id="loadState">読み込み中…</p>
       <div class="card">
-        <h3>① 目を閉じて真ん中へ</h3>
+        <h3>① 目を閉じて真ん中へ<em>RETURN</em></h3>
         <p>目をつぶって顔を中心に戻せるかのテスト（同じ向きを2回ずつ、回し切って戻す）</p>
         <canvas width="440" height="340" data-demo="noseA"></canvas>
-        <p class="axesNote">やる向きをタップで選ぶ（いくつでも）</p>
-        <div class="axes" id="axes"><button data-ax="LR">右左</button><button data-ax="UD">上下</button><button data-ax="DG">ななめ</button></div>
-        <p class="axesNote" id="axesSeq"></p>
+        <div class="opt">向き <i>（いくつでも選べます）</i></div>
+        <div class="chips" data-axes="A"><button class="chip" data-ax="LR">右左</button><button class="chip" data-ax="UD">上下</button><button class="chip" data-ax="DG">ななめ</button></div>
+        <p class="chipsNote" id="axesSeqA"></p>
         <button class="btn" data-plan="A" disabled>①を始める</button>
       </div>
       <div class="card">
-        <h3>② 目を閉じて8つの点へ</h3>
+        <h3>② 目を閉じて覚えた点へ<em>TARGET</em></h3>
         <p>目をつぶって覚えた点に顔を向けられるかのテスト</p>
         <canvas width="440" height="340" data-demo="noseB"></canvas>
+        <div class="opt">点の向き <i>（いくつでも選べます）</i></div>
+        <div class="chips" data-axes="B"><button class="chip" data-ax="LR">右左</button><button class="chip" data-ax="UD">上下</button><button class="chip" data-ax="DG">ななめ</button></div>
+        <p class="chipsNote" id="axesSeqB"></p>
         <button class="btn" data-plan="B" disabled>②を始める</button>
       </div>
       <div class="card">
-        <h3>①→② を続けて</h3>
-        <p>①のあとに②。最後に両方の結果をまとめて出します</p>
+        <h3>①→② を続けて<em>FULL</em></h3>
+        <p>①のあとに②（それぞれ上で選んだ向き）。最後に両方の結果をまとめて出します</p>
         <canvas width="440" height="340" data-demo="noseAB"></canvas>
         <button class="btn" data-plan="AB" disabled>①→②を始める</button>
       </div>
       <div class="notes">
         ・映像は端末の外へ送りません（端末の中で数字にするだけです）。<br>
         ・医療の検査ではありません。痛み・めまい・気分の悪さが出たら、すぐにやめてください。<br>
-        ・明るい所で、顔全体が映るようにしてください。
+        ・明るい所で、顔全体が映るようにしてください。首は楽に向けられる所までで十分です。
       </div>
     </section>
 
@@ -230,7 +246,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   <div class="guide"><ol>
     <li>スマホを<b>顔の前</b>に持つ（顔全体が映る距離）</li>
     <li><b>スマホを動かして</b>、鼻先（赤い点）を真ん中の点に合わせる（重なると緑になります）</li>
-    <li>①は<b>目を閉じて</b>右・左へ回せるところまで回し、目をつぶったまま「5・4・3・2・1」の声に合わせてゆっくり真ん中へ戻す（「ピッ」で確定・同じ方向に2回ずつ：右2回 → 左2回）。②は点が出たら鼻先を向け、<b>目を閉じて</b>同じ点へ</li>
+    <li>①は<b>目を閉じて</b>選んだ向き（右左・上下・ななめ）へ回せるところまで回し、目をつぶったまま「5・4・3・2・1」の声に合わせてゆっくり真ん中へ戻す（「ピッ」で確定・同じ方向に2回ずつ）。②は選んだ向きの点が出たら鼻先を向け、<b>目を閉じて</b>同じ点へ</li>
     <li>「<b>ピッ</b>」と鳴ったら目を開ける。赤い点が、目を閉じて合わせた位置です</li>
   </ol><p style="margin-top:6px">はじめは「まず練習する」がおすすめです。結果は最後に出ます。</p></div>
   <h4>記録</h4>
@@ -263,7 +279,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 </div>
 
 <script type="module">
-// 鼻先あわせ：~/FNT-Apps/fnt-camera-check/index.html の「14・15. 鼻先を合わせる①②」を単体にしたもの（2026-10-18）。
+// 首の固有受容感覚のテスト（旧名：鼻先あわせ。2026-10-18 夜に改名。URL は hanasaki-awase のまま）：~/FNT-Apps/fnt-camera-check/index.html の「14・15. 鼻先を合わせる①②」を単体にしたもの（2026-10-18）。
 // 🔴 鼻先の検査そのもの（NOSE_SQ〜runNoseB・demoNose）と、カメラ・音声・安定化の部品は元のコードをそのまま写してある。
 //    元の鼻先の検査を直したら、ここにも同じ直しを移すこと（README）
 import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/vision_bundle.mjs';
@@ -647,7 +663,7 @@ function demoNose(kind, c = $('demoC')) {   // c：描くキャンバス（ト�
       x.fillStyle = '#ff8a8a'; x.font = 'bold 16px sans-serif'; x.textAlign = 'left'; x.fillText('ここにいた', z.mark.x + 10, z.mark.y + 5); }
     else { x.fillStyle = '#ff5a5a'; x.beginPath(); x.arc(n.x, n.y, 8, 0, 7); x.fill(); }
     // 文字
-    x.textAlign = 'center'; x.fillStyle = '#ffcc00'; x.font = 'bold 26px sans-serif'; x.fillText(z.cap, cx, 32);
+    x.textAlign = 'center'; x.fillStyle = '#d8bd84'; let fs = 26; do { x.font = `bold ${fs}px sans-serif`; fs -= 1; } while (fs > 14 && x.measureText(z.cap).width > W - 24); x.fillText(z.cap, cx, 32);   // 見出しが枠からはみ出さないよう縮める（金の見出しは VORC と同じ色）
     if (z.say) { x.fillStyle = 'rgba(255,255,255,.92)'; x.font = 'bold 22px sans-serif'; x.fillText(`🔊「${z.say}」`, 370, 330); }
     if (z.cnt) { x.fillStyle = '#fff'; x.font = 'bold 30px sans-serif'; x.fillText(String(z.cnt), 400, 80); x.font = '15px sans-serif'; x.fillText(z.cntLab || '確定まで', 400, 52); }
     if (z.pi) { x.fillStyle = '#5ad18b'; x.font = 'bold 34px sans-serif'; x.fillText('ピッ♪', 392, 80); }
@@ -770,7 +786,7 @@ const jpeDeg = e => e && Number.isFinite(e.dR) && Number.isFinite(e.dU) ? Math.h
 function jpe(o, back) {
   // ①（新しい流れ）は向きごとの平均（2回ずつ）。判定は右・左だけ（4.5° は頭を左右に回して戻す検査の基準）。上下・ななめは同じ 4.5° を当てた参考
   const turn = back && noseTurnFmt(o), GG = turn ? Object.fromEntries([...new Set(o.trials.map(t => t.k))].map(k => [k, [k]])) : JPE_G;
-  const g = {}; for (const s in GG) { const v = o.trials.filter(t => GG[s].includes(t.k)).map(t => jpeDeg(t.err)).filter(Number.isFinite); g[s] = v.length ? r1(mean(v)) : null; }
+  const g = {}; for (const s in GG) { if (!o.trials.some(t => GG[s].includes(t.k))) continue; const v = o.trials.filter(t => GG[s].includes(t.k)).map(t => jpeDeg(t.err)).filter(Number.isFinite); g[s] = v.length ? r1(mean(v)) : null; }   // 選ばなかった向きは出さない
   const all = o.trials.map(t => jpeDeg(t.err)).filter(Number.isFinite);
   return { g, bad: Object.keys(g).filter(s => (!turn || s === 'R' || s === 'L') && g[s] != null && g[s] > JPE_DEG), judge: !turn || 'R' in g || 'L' in g, mean: all.length ? r1(mean(all)) : null, cm: o.cm || null };
 }
@@ -789,34 +805,38 @@ const jpeText = (o, back) => { const J = jpe(o, back); if (J.mean == null) retur
   return `　${back && J.judge ? '判定' : '参考'}（首の位置感覚・4.5°＝画面の上 ${f1(tanCm(JPE_DEG, cm))}cm${J.cm ? `・顔から約${J.cm}cm` : ''}）：${back && J.judge ? (J.bad.length ? `乱れ（${J.bad.map(s => DJ[s]).join('・')}から戻すとき）` : '基準内') + '／' : ''}${Object.keys(J.g).map(s => `${DJ[s]} ${J.g[s] ?? '—'}°`).join('・')}`; };
 const noseTurnFmt = o => !!(o && o.trials.length && (o.flow === 'turn' || o.trials.every(t => t.k === 'R' || t.k === 'L')));   // ①の新しい流れ（選んだ向きへ回し切って戻す）の記録か
 function noseRowsTurn(o) { const n = {}; return o.trials.map(t => { n[t.k] = (n[t.k] || 0) + 1; return { t, lab: `${DJ[t.k]}へ${t.k === 'R' || t.k === 'L' ? '回して' : '向けて'}戻す（${n[t.k]}回目）` }; }); }
-const noseTrialsText = o => noseTurnFmt(o) ? noseRowsTurn(o).map(({ t, lab }) => `${lab} ${t.err ? (t.err.deg ?? '—') + '°' : '—'}`).join('・') : DIRS.map(k => { const x = o.trials.find(q => q.k === k); return `${DJ[k]} ${x && x.err ? (x.err.deg ?? '—') + '°' : '—'}`; }).join('・');
+const noseTrialsText = o => noseTurnFmt(o) ? noseRowsTurn(o).map(({ t, lab }) => `${lab} ${t.err ? (t.err.deg ?? '—') + '°' : '—'}`).join('・') : DIRS.filter(k => o.trials.some(q => q.k === k)).map(k => { const x = o.trials.find(q => q.k === k); return `${DJ[k]} ${x && x.err ? (x.err.deg ?? '—') + '°' : '—'}`; }).join('・');
 function noseHTML(o, back, lab) {
   const S = o.sum, warn = t => `${t && !t.reached ? '<span style="color:#ff8a65">・点に合わないまま進んだ</span>' : ''}${t && t.turned === false ? '<span style="color:#ff8a65">・回したのが読めなかった</span>' : ''}${t && t.shut != null && t.shut < 0.5 ? '<span style="color:#ff8a65">・目が開いていた</span>' : ''}`;
   const turn = back && noseTurnFmt(o);
-  const rows = turn ? noseRowsTurn(o).map(({ t, lab: l }) => `${l}：${noseWord(t.err, true)}${warn(t)}`) : DIRS.map(k => { const t = o.trials.find(x => x.k === k); return `${DJ[k]}${back ? 'から' : 'へ'}：${t ? noseWord(t.err, back) : '—'}${warn(t)}`; });
+  const rows = turn ? noseRowsTurn(o).map(({ t, lab: l }) => `${l}：${noseWord(t.err, true)}${warn(t)}`) : DIRS.filter(k => o.trials.some(x => x.k === k)).map(k => { const t = o.trials.find(x => x.k === k); return `${DJ[k]}${back ? 'から' : 'へ'}：${t ? noseWord(t.err, back) : '—'}${warn(t)}`; });
   const openW = turn ? noseRowsTurn(o).filter(({ t }) => t.shut != null && t.shut < 0.5).map(({ lab: l }) => l) : S.open.map(k => DJ[k]);
   return `${lab}：ズレの平均 <b>${S.meanDeg != null ? S.meanDeg + '°' : '—'}</b>（画面の上 ${f2(S.meanPx)}）・いちばん大きい向き <b>${S.worst ? DJ[S.worst] : '—'}</b>${noseSVG(o.trials)}${rows.join('<br>')}<br><span class="small">度は頭の向き（＋＝本人の右・上）。カメラは回旋を8割・上下を半分ほどに小さく読むので目安。画面の上の数字は鼻先の位置（目じりの間＝1）。判定は下の枠${openW.length ? `<br><span style="color:#ff8a65">※目が開いていた回：${openW.join('・')}（戻すあいだの半分以上で目が開いていた）</span>` : ''}</span>${jpeHTML(o, back)}`;
 }
-const NOSE_A_T = '① 目を閉じて真ん中へ', NOSE_B_T = '② 目を閉じて8つの点へ';   // 元は「14. 鼻先を合わせる①（…）」
+const NOSE_A_T = '① 目を閉じて真ん中へ', NOSE_B_T = '② 目を閉じて覚えた点へ';   // 元は「14. 鼻先を合わせる①（…）」
 function noseStart() { try { const A = window.AudioContext || window.webkitAudioContext; endBeep.a = endBeep.a || new A(); endBeep.a.resume(); } catch (e) {} }   // 音はボタンを押したときに用意しないと鳴らない端末がある
 // 説明はひとことに（2026-10-18 宮崎さん「目をつぶって顔を中心に戻せるかのテストです、ぐらいシンプルに」）。練習は2か所だけ・記録しない（同「ちょっと難しいので簡単な練習を」）
 const NOSE_SUB = '<small>3秒後に鼻先の位置を確定します。「ピッ」と鳴ったら目を開ける</small>';
 const NOSE_SUB_A = '<small>同じ方向に2回ずつやります（右へ2回 → 左へ2回）。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける</small>';   // ①は元の検査の流れ（2026-10-18 夜 宮崎さん「3回は長いから2回で」）
 // ①でやる向きは、トップの①のカードでタップして選ぶ（2026-10-18 夜 宮崎さん「上下や斜めも設定できるように。右左・上下・斜めは最初の画面で、どれとどれをやるのかタップして選択できるように」）
-const AXES = { LR: ['R', 'L'], UD: ['U', 'D'], DG: ['UR', 'UL', 'DR', 'DL'] }, AXES_KEY = 'hanasaki_axes';
-let AX = (() => { try { const a = JSON.parse(localStorage.getItem(AXES_KEY)); if (Array.isArray(a) && a.length && a.every(x => x in AXES)) return a; } catch (e) {} return ['LR']; })();
-const axDirs = () => Object.keys(AXES).filter(a => AX.includes(a)).flatMap(a => AXES[a]);
-const axSeq = () => axDirs().flatMap(k => [k, k]);   // 同じ向きを2回続けてから次の向きへ
-const axLR = () => AX.length === 1 && AX[0] === 'LR';
-const axSub = () => axLR() ? NOSE_SUB_A : `<small>同じ方向に2回ずつやります（${axDirs().map(k => DJ[k] + 'へ2回').join(' → ')}）。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける</small>`;
+const AXES = { LR: ['R', 'L'], UD: ['U', 'D'], DG: ['UR', 'UL', 'DR', 'DL'] }, AXES_KEY = { A: 'hanasaki_axes', B: 'hanasaki_axes_b' };
+// ②も同じように選べる（2026-10-18 夜 宮崎さん「2番のテストも同じように上下左右なども全部選択できるように」）。②の最初は3つとも（前の8か所と同じ）
+const AX = Object.fromEntries(['A', 'B'].map(w => [w, (() => { try { const a = JSON.parse(localStorage.getItem(AXES_KEY[w])); if (Array.isArray(a) && a.length && a.every(x => x in AXES)) return a; } catch (e) {} return w === 'A' ? ['LR'] : ['LR', 'UD', 'DG']; })()]));
+const axDirs = (w = 'A') => Object.keys(AXES).filter(a => AX[w].includes(a)).flatMap(a => AXES[a]);
+const axSeq = () => axDirs('A').flatMap(k => [k, k]);   // ①：同じ向きを2回続けてから次の向きへ
+const axLR = () => AX.A.length === 1 && AX.A[0] === 'LR';
+const axSub = () => axLR() ? NOSE_SUB_A : `<small>同じ方向に2回ずつやります（${axDirs('A').map(k => DJ[k] + 'へ2回').join(' → ')}）。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける</small>`;
 const AX_VOICE = '目をつぶって。顔を中心に戻せるかのテストです。同じ方向に2回ずつやります。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける';   // 向きの並びは画面だけに出す（組み合わせごとの声を作らない）
 function axUI() {
-  document.querySelectorAll('#axes [data-ax]').forEach(b => { b.classList.toggle('on', AX.includes(b.dataset.ax)); b.setAttribute('aria-pressed', AX.includes(b.dataset.ax)); });
-  const n = axSeq().length; $('axesSeq').textContent = `${axDirs().map(k => DJ[k]).join('・')}を2回ずつ（全${n}回）`;
+  for (const w of ['A', 'B']) {
+    document.querySelectorAll(`[data-axes="${w}"] [data-ax]`).forEach(b => { b.classList.toggle('on', AX[w].includes(b.dataset.ax)); b.setAttribute('aria-pressed', AX[w].includes(b.dataset.ax)); });
+    const d = axDirs(w), el = $('axesSeq' + w); if (el) el.textContent = w === 'A' ? `${d.map(k => DJ[k]).join('・')}を2回ずつ（全${d.length * 2}回）` : `${d.map(k => DJ[k]).join('・')}の点（全${d.length}か所・出る順はばらばら）`;
+  }
 }
-document.querySelectorAll('#axes [data-ax]').forEach(b => { b.onclick = () => {
-  const a = b.dataset.ax; if (AX.includes(a)) { if (AX.length === 1) return toast('どれか1つは選んでください'); AX = AX.filter(x => x !== a); } else AX = [...AX, a];
-  localStorage.setItem(AXES_KEY, JSON.stringify(AX)); axUI(); }; });
+document.querySelectorAll('[data-axes] [data-ax]').forEach(b => { b.onclick = () => {
+  const w = b.closest('[data-axes]').dataset.axes, a = b.dataset.ax;
+  if (AX[w].includes(a)) { if (AX[w].length === 1) return toast('どれか1つは選んでください'); AX[w] = AX[w].filter(x => x !== a); } else AX[w] = [...AX[w], a];
+  localStorage.setItem(AXES_KEY[w], JSON.stringify(AX[w])); axUI(); }; });
 axUI();
 function noseIntro(step, title, head, kind, run, practiced) {
   show(step, title); placeNose();
@@ -867,7 +887,7 @@ async function runNoseA(practice) {
     let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
     if (!last) return fail(stepNoseA, '顔が見つかりませんでした');
     const g = placeNose(), T = [];
-    const SEQ = practice ? axDirs() : axSeq();
+    const SEQ = practice ? axDirs('A') : axSeq();
     for (const [i, k] of SEQ.entries()) {
       if (my !== tok) return;
       // 何回続くかを言う（2026-10-18 夜 宮崎さん「右に回すのが何回続くのか分からない。2回ってちゃんと言ってほしい」）。回数は画面の下に小さく出す（声では読まない）
@@ -889,7 +909,7 @@ async function runNoseA(practice) {
     if (my !== tok) return;
     G = null; cue('');
     if (practice) return stepNoseA(true);
-    const o = { trials: T, d: r3(g.d), cm: g.cm, flow: 'turn', axes: [...AX] }; o.sum = noseSum(T, true); RUN.noseA = o;
+    const o = { trials: T, d: r3(g.d), cm: g.cm, flow: 'turn', axes: [...AX.A] }; o.sum = noseSum(T, true); RUN.noseA = o;
     if (!o.sum.n) return fail(stepNoseA, '顔が見えている時間が短すぎました');
     staff(noseHTML(o, true, '目を閉じて真ん中へ戻したときの、最初の真ん中からのズレ'));
     done(stepNoseA);
@@ -902,7 +922,7 @@ async function runNoseB(practice) {
     if (!last) return fail(stepNoseB, '顔が見つかりませんでした');
     const g = placeNose(), O = {}, T = [];
     // 1か所ずつ：目を開けたまま点へ（感覚を覚える）→ 真ん中へ戻る → 目をつぶったまま同じ点へ → 3秒後に「ピッ」（2026-10-18 宮崎さん「最初に1回、目を開けたまま点まで動かして感覚を覚え、真ん中に戻る。次は『目をつぶったままいきます』」）
-    for (const k of shuffle(DIRS).slice(0, practice ? 2 : 8)) {
+    for (const k of shuffle(axDirs('B')).slice(0, practice ? 2 : 8)) {
       if (my !== tok) return;
       g.tgt = null; g.hideC = false; cue('スマホを動かして、鼻先を真ん中の点に', 'top');
       await noseOn({ x: g.cx, y: g.cy }, Infinity); if (my !== tok) return;
@@ -920,7 +940,7 @@ async function runNoseB(practice) {
     if (my !== tok) return;
     G = null; cue('');
     if (practice) return stepNoseB(true);
-    const o = { trials: T, d: r3(g.d), cm: g.cm }; o.sum = noseSum(T, false); RUN.noseB = o;
+    const o = { trials: T, d: r3(g.d), cm: g.cm, axes: [...AX.B] }; o.sum = noseSum(T, false); RUN.noseB = o;
     if (!o.sum.n) return fail(stepNoseB, '顔が見えている時間が短すぎました');
     staff(noseHTML(o, false, '目を閉じて合わせた位置の、目を開けて合わせた位置からのズレ'));
     done(stepNoseB);
@@ -955,7 +975,7 @@ function runHTML(r) {
   return h || '<div class="res">この記録には結果がありません。</div>';
 }
 function runText(r) {
-  const L = [`鼻先あわせ｜FNT の記録 ${when(r.started)}`];
+  const L = [`首の固有受容感覚のテスト｜FNT の記録 ${when(r.started)}`];
   for (const [o, t] of [[r.noseA, NOSE_A_T], [r.noseB, NOSE_B_T]]) if (o) L.push(`${t}：ズレの平均 ${o.sum.meanDeg ?? '—'}°（画面の上 ${f2(o.sum.meanPx)}）・いちばん大きい向き ${o.sum.worst ? DJ[o.sum.worst] : '—'}／${noseTrialsText(o)}${o.sum.open.length ? '／目が開いていた回 ' + o.sum.open.map(k => DJ[k]).join('・') : ''}`);
   for (const [o, b] of [[r.noseA, true], [r.noseB, false]]) if (o) { const x = jpeText(o, b); if (x) L.push(x); }
   return L.join('\n');

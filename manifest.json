@@ -1,19 +1,38 @@
 {
-  "name": "鼻先あわせ｜FNT",
-  "short_name": "鼻先あわせ",
-  "description": "目を閉じたまま、鼻先を狙った所へ向けられるかをスマホのカメラで測る。FNTアドバンス講習の受講者用（Functional Neuro Training）。",
+  "name": "首の固有受容感覚のテスト｜FNT",
+  "short_name": "首の固有受容感覚",
+  "description": "首の固有受容感覚のテスト。目を閉じたまま、頭を真ん中や覚えた点へ戻せるかをスマホのカメラで測る（Functional Neuro Training）。",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0b1a20",
-  "theme_color": "#0b1a20",
+  "background_color": "#070707",
+  "theme_color": "#070707",
   "scope": "./",
   "lang": "ja",
   "dir": "ltr",
-  "categories": ["health", "fitness", "medical"],
+  "categories": [
+    "health",
+    "fitness",
+    "medical"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

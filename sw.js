@@ -1,8 +1,8 @@
-// Service Worker ─ 鼻先あわせ（Functional Neuro Training）。手本：~/FNT-Apps/pinto-8/sw.js
+// Service Worker ─ 首の固有受容感覚のテスト（Functional Neuro Training）。手本：~/FNT-Apps/pinto-8/sw.js
 // 戦略：Network First（新しいコードを最優先で拾う）。オフライン時のみキャッシュへ。
 // index.html 側で controllerchange を検知して location.reload() する。
 // 🔴 index.html や voice/ を変えたら CACHE_NAME の版を上げる（古いキャッシュが消える）
-const CACHE_NAME = 'hanasaki-awase-v1.0.5';
+const CACHE_NAME = 'hanasaki-awase-v1.1.0';
 
 const ASSETS_TO_CACHE = [
   './',
