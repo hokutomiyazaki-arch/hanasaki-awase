@@ -929,8 +929,8 @@ if (TEST) window.__hanasaki = { G: () => G, last: () => last, get RUN() { return
 
 // ── Service Worker（Network First）。新しい版に切り替わったら読み込み直す
 if ('serviceWorker' in navigator && !TEST) {
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (refreshing || !idle()) return; refreshing = true; location.reload(); });
+  let refreshing = false; const hadCtrl = !!navigator.serviceWorker.controller;   // 初めて開いたとき（前の版が無い）は読み込み直さない。直すとスプラッシュに戻ってしまう
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (refreshing || !hadCtrl || !idle()) return; refreshing = true; location.reload(); });
   addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.warn('[SW] register failed', err)); });
 }
 </script>
