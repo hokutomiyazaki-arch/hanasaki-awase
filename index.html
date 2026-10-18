@@ -482,7 +482,12 @@ let VOICE = localStorage.getItem(VOICE_KEY) !== 'off', said = '', jaV = null;
 // 文を足したら tools/voice_build.py を走らせて voice/ を作り直す
 const VA = new Audio(); let VMAP = null;
 const vkey = t => t.replace(/[\s。]/g, '');
-fetch('voice/index.json', { cache: 'no-cache' }).then(r => r.json()).then(m => { VMAP = m; }).catch(() => {});
+// 声は全部男性にそろえる（2026-10-18 宮崎さん「女性の声と男性の声が混ざっちゃってるから、このアプリ内はすべて男性の声に」）。
+// 女性の声は、音声ファイルの一覧（index.json）が届く前に読んだ文や、ファイルが無い文を端末の声（iPhone の日本語の標準＝女性）で読んだときに出ていた。
+// だから ① 一覧が届く前の文は、届いてから音声ファイルで鳴らす ② 端末の声は男性の声だけを使い、男性の声が無い端末では読まない（文字は画面に出る）
+const VREADY = fetch('voice/index.json', { cache: 'no-cache' }).then(r => r.json()).then(m => { VMAP = m; }).catch(() => {});
+const MALE_JA = /otoya|hattori|ichiro|keita|daichi|naoki|takumi|kenji|male|男性|ja-jp-x-(jac|jad)/i;
+const maleJa = () => speechSynthesis.getVoices().find(v => /^ja/i.test(v.lang) && MALE_JA.test(v.name + ' ' + v.voiceURI)) || null;
 const toSpeech = html => { const d = document.createElement('div'); d.innerHTML = String(html).replace(/<br\s*\/?>/g, '。').replace(/<small>/g, '。'); d.querySelectorAll('button').forEach(b => b.remove());
   return d.textContent.replace(/「∞」/g, '8の字').replace(/∞/g, '8の字').replace(/(\d+)(周目|往復目)／\d+/g, '$1$2').replace(/／/g, '、').replace(/\s+/g, ' ').replace(/。+/g, '。').replace(/^。|。$/g, '').trim(); };
 function say(html) {
@@ -493,13 +498,14 @@ function say(html) {
   if (said && t.replace(/\d+/g, '#') === said.replace(/\d+/g, '#')) { let i = 0; while (t[i] === said[i]) i++; while (i > 0 && /\d/.test(t[i - 1])) i--; u = t.slice(i); }
   said = t;
   if (!VOICE) return;
+  if (!VMAP) { VREADY.then(() => { if (said === t && VMAP) { said = ''; say(html); } }); return; }
   const f = VMAP && VMAP[vkey(u)];
   if (f) { try { speechSynthesis.cancel(); } catch (e) {} vplay('voice/' + f); return; }
   if (STAFF && VMAP) { (window.__voiceMiss = window.__voiceMiss || []).push(u); console.log('[voice] 音声ファイルなし：' + u); }
   if (!window.speechSynthesis) return;
   VA.pause();
   try { speechSynthesis.cancel(); const x = new SpeechSynthesisUtterance(u); x.lang = 'ja-JP'; x.rate = 1.1;
-    jaV = jaV || speechSynthesis.getVoices().find(v => /^ja/i.test(v.lang)); if (jaV) x.voice = jaV; speechSynthesis.speak(x); } catch (e) {}
+    jaV = jaV || maleJa(); if (!jaV) return; x.voice = jaV; speechSynthesis.speak(x); } catch (e) {}
 }
 // 読み上げが終わるまで待つ（2026-10-16 夜 宮崎さん「VOR で音声の説明が読み終わる前に次に進んでしまう」）。鳴っていなければすぐ返る。max ミリ秒で打ち切る
 async function voiceQuiet(max = 9000) { const my = tok, t0 = performance.now(); await sleep(150);
