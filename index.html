@@ -64,6 +64,10 @@ header{ display:flex; align-items:center; justify-content:space-between; padding
 .card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0f1115; border-radius:12px; }
 .btn{ width:100%; min-height:54px; padding:14px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); margin:6px 0; }
 .btn:disabled{ opacity:.4; }
+.axes{ display:flex; gap:8px; margin:2px 0 6px; }
+.axes button{ flex:1; min-height:46px; border-radius:14px; font-size:16px; font-weight:800; color:var(--ink); background:transparent; border:1px solid var(--line); }
+.axes button.on{ color:var(--accentInk); background:var(--accent); border-color:var(--accent); }
+.axesNote{ font-size:12px; opacity:.8; margin:0 0 4px; }
 .btn.ghost{ color:var(--ink); background:transparent; border:1px solid var(--line); }
 .btn:active{ transform:translateY(1px); }
 .notes{ margin:16px 0 8px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.8; }
@@ -172,8 +176,11 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
       <p class="loadState" id="loadState">読み込み中…</p>
       <div class="card">
         <h3>① 目を閉じて真ん中へ</h3>
-        <p>目をつぶって顔を中心に戻せるかのテスト（右へ2回 → 左へ2回、回し切って戻す）</p>
+        <p>目をつぶって顔を中心に戻せるかのテスト（同じ向きを2回ずつ、回し切って戻す）</p>
         <canvas width="440" height="340" data-demo="noseA"></canvas>
+        <p class="axesNote">やる向きをタップで選ぶ（いくつでも）</p>
+        <div class="axes" id="axes"><button data-ax="LR">右左</button><button data-ax="UD">上下</button><button data-ax="DG">ななめ</button></div>
+        <p class="axesNote" id="axesSeq"></p>
         <button class="btn" data-plan="A" disabled>①を始める</button>
       </div>
       <div class="card">
@@ -761,24 +768,27 @@ function phoneCm(p) {
 }
 const jpeDeg = e => e && Number.isFinite(e.dR) && Number.isFinite(e.dU) ? Math.hypot(e.dR / CAM_ROT, e.dU / CAM_UP) : NaN;
 function jpe(o, back) {
-  const GG = back && noseTurnFmt(o) ? { R: ['R'], L: ['L'] } : JPE_G;   // ①（新しい流れ）は右3回・左3回の平均。上下は宮崎さんの基準に無いので判定に入れない
+  // ①（新しい流れ）は向きごとの平均（2回ずつ）。判定は右・左だけ（4.5° は頭を左右に回して戻す検査の基準）。上下・ななめは同じ 4.5° を当てた参考
+  const turn = back && noseTurnFmt(o), GG = turn ? Object.fromEntries([...new Set(o.trials.map(t => t.k))].map(k => [k, [k]])) : JPE_G;
   const g = {}; for (const s in GG) { const v = o.trials.filter(t => GG[s].includes(t.k)).map(t => jpeDeg(t.err)).filter(Number.isFinite); g[s] = v.length ? r1(mean(v)) : null; }
   const all = o.trials.map(t => jpeDeg(t.err)).filter(Number.isFinite);
-  return { g, bad: Object.keys(g).filter(s => g[s] != null && g[s] > JPE_DEG), mean: all.length ? r1(mean(all)) : null, cm: o.cm || null };
+  return { g, bad: Object.keys(g).filter(s => (!turn || s === 'R' || s === 'L') && g[s] != null && g[s] > JPE_DEG), judge: !turn || 'R' in g || 'L' in g, mean: all.length ? r1(mean(all)) : null, cm: o.cm || null };
 }
 function jpeHTML(o, back) {
   const J = jpe(o, back); if (J.mean == null) return '';
   const cm = J.cm || JPE_CM0, cmW = J.cm ? `顔から約${J.cm}cm` : `顔から${JPE_CM0}cmとして`;
-  const rows = Object.keys(J.g).map(s => { const d = J.g[s], over = d != null && d > JPE_DEG; return `<span style="color:${over ? '#ff8a65' : 'inherit'}">${JPE_J[s]}${back && noseTurnFmt(o) ? `へ回して戻す（${o.trials.filter(t => t.k === s).length}回の平均）` : back ? 'から戻す' : 'への点'}：${d != null ? `<b>${d}°</b>（画面の上 ${f1(tanCm(d, cm))}cm）` : '—'}${over ? '・基準超え' : ''}</span>`; }).join('<br>');
-  const head = back
-    ? `<b>判定（首の位置感覚）：${J.bad.length ? `<span style="color:#ff8a65">首の位置感覚の乱れ（${J.bad.map(s => JPE_J[s]).join('・')}から戻すとき）</span>` : '<span style="color:#5ad18b">基準内</span>'}</b>`
+  const rows = Object.keys(J.g).map(s => { const d = J.g[s], over = d != null && d > JPE_DEG, ref = back && noseTurnFmt(o) && s !== 'R' && s !== 'L'; return `<span style="color:${over ? '#ff8a65' : 'inherit'}">${DJ[s]}${back && noseTurnFmt(o) ? `へ${ref ? '向けて' : '回して'}戻す（${o.trials.filter(t => t.k === s).length}回の平均）` : back ? 'から戻す' : 'への点'}：${d != null ? `<b>${d}°</b>（画面の上 ${f1(tanCm(d, cm))}cm）` : '—'}${over ? (ref ? '・4.5°超え（参考）' : '・基準超え') : ''}${ref ? '<small>（参考）</small>' : ''}</span>`; }).join('<br>');
+  const head = back && !J.judge
+    ? `<b>参考（首の位置感覚の基準を当てた目安）</b><br><span class="small">判定の基準（4.5°）は右・左へ回して戻す検査のもの。右左を選ぶと判定が出る</span>`
+    : back
+    ? `<b>判定（首の位置感覚）：${J.bad.length ? `<span style="color:#ff8a65">首の位置感覚の乱れ（${J.bad.map(s => DJ[s]).join('・')}から戻すとき）</span>` : '<span style="color:#5ad18b">基準内</span>'}</b>`
     : `<b>参考（首の位置感覚の基準を当てた目安）</b><br><span class="small">②は「目を閉じて真ん中へ戻す」元の検査とは違う動きなので、判定はしない</span>`;
-  return `<div style="margin:8px 0;padding:8px 10px;border:1px solid #3a4150;border-radius:10px">${head}<br>${rows}<br><span class="small">基準：${back ? '右へ回して戻す・左へ回して戻す（各2回）の、どちらかの平均' : 'どれか1つの向きの平均'}が <b>4.5°</b> を超えたら乱れ。いまのスマホ（${cmW}）の画面の上なら <b>${f1(tanCm(JPE_DEG, cm))}cm</b>、レーザーで76cm先の的なら 6.0cm。カメラが小さく読む分は戻して比べている（回旋÷0.8・上下÷0.5）${back ? '<br>首を回すと痛む向きがあれば、その向きのずれが大きいか見比べる（痛む向きほどずれが大きい。練習でずれと痛みが一緒に減れば、痛みの一部は脳の位置の把握から：Carrick CNS20-34）' : ''}<br>出典：Carrick Institute CNS10（Tests of Vestibular Function Pt.2・note packet p.49–50）／Revel 1991（PMID 2009044）／Dugailly 2015（PMID 26438174）</span></div>`;
+  return `<div style="margin:8px 0;padding:8px 10px;border:1px solid #3a4150;border-radius:10px">${head}<br>${rows}<br><span class="small">基準：${back ? '右へ回して戻す・左へ回して戻す（各2回）の、どちらかの平均' + (noseTurnFmt(o) && Object.keys(J.g).some(s => s !== 'R' && s !== 'L') ? '（上下・ななめは同じ 4.5° を当てた参考）' : '') : 'どれか1つの向きの平均'}が <b>4.5°</b> を超えたら乱れ。いまのスマホ（${cmW}）の画面の上なら <b>${f1(tanCm(JPE_DEG, cm))}cm</b>、レーザーで76cm先の的なら 6.0cm。カメラが小さく読む分は戻して比べている（回旋÷0.8・上下÷0.5）${back ? '<br>首を回すと痛む向きがあれば、その向きのずれが大きいか見比べる（痛む向きほどずれが大きい。練習でずれと痛みが一緒に減れば、痛みの一部は脳の位置の把握から：Carrick CNS20-34）' : ''}<br>出典：Carrick Institute CNS10（Tests of Vestibular Function Pt.2・note packet p.49–50）／Revel 1991（PMID 2009044）／Dugailly 2015（PMID 26438174）</span></div>`;
 }
 const jpeText = (o, back) => { const J = jpe(o, back); if (J.mean == null) return ''; const cm = J.cm || JPE_CM0;
-  return `　${back ? '判定' : '参考'}（首の位置感覚・4.5°＝画面の上 ${f1(tanCm(JPE_DEG, cm))}cm${J.cm ? `・顔から約${J.cm}cm` : ''}）：${back ? (J.bad.length ? `乱れ（${J.bad.map(s => JPE_J[s]).join('・')}から戻すとき）` : '基準内') + '／' : ''}${Object.keys(J.g).map(s => `${JPE_J[s]} ${J.g[s] ?? '—'}°`).join('・')}`; };
-const noseTurnFmt = o => !!(o && o.trials.length && o.trials.every(t => t.k === 'R' || t.k === 'L'));   // ①の新しい流れ（右・左へ回し切って戻す）の記録か
-function noseRowsTurn(o) { const n = {}; return o.trials.map(t => { n[t.k] = (n[t.k] || 0) + 1; return { t, lab: `${DJ[t.k]}へ回して戻す（${n[t.k]}回目）` }; }); }
+  return `　${back && J.judge ? '判定' : '参考'}（首の位置感覚・4.5°＝画面の上 ${f1(tanCm(JPE_DEG, cm))}cm${J.cm ? `・顔から約${J.cm}cm` : ''}）：${back && J.judge ? (J.bad.length ? `乱れ（${J.bad.map(s => DJ[s]).join('・')}から戻すとき）` : '基準内') + '／' : ''}${Object.keys(J.g).map(s => `${DJ[s]} ${J.g[s] ?? '—'}°`).join('・')}`; };
+const noseTurnFmt = o => !!(o && o.trials.length && (o.flow === 'turn' || o.trials.every(t => t.k === 'R' || t.k === 'L')));   // ①の新しい流れ（選んだ向きへ回し切って戻す）の記録か
+function noseRowsTurn(o) { const n = {}; return o.trials.map(t => { n[t.k] = (n[t.k] || 0) + 1; return { t, lab: `${DJ[t.k]}へ${t.k === 'R' || t.k === 'L' ? '回して' : '向けて'}戻す（${n[t.k]}回目）` }; }); }
 const noseTrialsText = o => noseTurnFmt(o) ? noseRowsTurn(o).map(({ t, lab }) => `${lab} ${t.err ? (t.err.deg ?? '—') + '°' : '—'}`).join('・') : DIRS.map(k => { const x = o.trials.find(q => q.k === k); return `${DJ[k]} ${x && x.err ? (x.err.deg ?? '—') + '°' : '—'}`; }).join('・');
 function noseHTML(o, back, lab) {
   const S = o.sum, warn = t => `${t && !t.reached ? '<span style="color:#ff8a65">・点に合わないまま進んだ</span>' : ''}${t && t.turned === false ? '<span style="color:#ff8a65">・回したのが読めなかった</span>' : ''}${t && t.shut != null && t.shut < 0.5 ? '<span style="color:#ff8a65">・目が開いていた</span>' : ''}`;
@@ -792,11 +802,27 @@ function noseStart() { try { const A = window.AudioContext || window.webkitAudio
 // 説明はひとことに（2026-10-18 宮崎さん「目をつぶって顔を中心に戻せるかのテストです、ぐらいシンプルに」）。練習は2か所だけ・記録しない（同「ちょっと難しいので簡単な練習を」）
 const NOSE_SUB = '<small>3秒後に鼻先の位置を確定します。「ピッ」と鳴ったら目を開ける</small>';
 const NOSE_SUB_A = '<small>同じ方向に2回ずつやります（右へ2回 → 左へ2回）。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける</small>';   // ①は元の検査の流れ（2026-10-18 夜 宮崎さん「3回は長いから2回で」）
+// ①でやる向きは、トップの①のカードでタップして選ぶ（2026-10-18 夜 宮崎さん「上下や斜めも設定できるように。右左・上下・斜めは最初の画面で、どれとどれをやるのかタップして選択できるように」）
+const AXES = { LR: ['R', 'L'], UD: ['U', 'D'], DG: ['UR', 'UL', 'DR', 'DL'] }, AXES_KEY = 'hanasaki_axes';
+let AX = (() => { try { const a = JSON.parse(localStorage.getItem(AXES_KEY)); if (Array.isArray(a) && a.length && a.every(x => x in AXES)) return a; } catch (e) {} return ['LR']; })();
+const axDirs = () => Object.keys(AXES).filter(a => AX.includes(a)).flatMap(a => AXES[a]);
+const axSeq = () => axDirs().flatMap(k => [k, k]);   // 同じ向きを2回続けてから次の向きへ
+const axLR = () => AX.length === 1 && AX[0] === 'LR';
+const axSub = () => axLR() ? NOSE_SUB_A : `<small>同じ方向に2回ずつやります（${axDirs().map(k => DJ[k] + 'へ2回').join(' → ')}）。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける</small>`;
+const AX_VOICE = '目をつぶって。顔を中心に戻せるかのテストです。同じ方向に2回ずつやります。回せるところまで回し、目をつぶったまま「5・4・3・2・1」でゆっくり真ん中へ。「ピッ」と鳴ったら目を開ける';   // 向きの並びは画面だけに出す（組み合わせごとの声を作らない）
+function axUI() {
+  document.querySelectorAll('#axes [data-ax]').forEach(b => { b.classList.toggle('on', AX.includes(b.dataset.ax)); b.setAttribute('aria-pressed', AX.includes(b.dataset.ax)); });
+  const n = axSeq().length; $('axesSeq').textContent = `${axDirs().map(k => DJ[k]).join('・')}を2回ずつ（全${n}回）`;
+}
+document.querySelectorAll('#axes [data-ax]').forEach(b => { b.onclick = () => {
+  const a = b.dataset.ax; if (AX.includes(a)) { if (AX.length === 1) return toast('どれか1つは選んでください'); AX = AX.filter(x => x !== a); } else AX = [...AX, a];
+  localStorage.setItem(AXES_KEY, JSON.stringify(AX)); axUI(); }; });
+axUI();
 function noseIntro(step, title, head, kind, run, practiced) {
   show(step, title); placeNose();
-  const t = (practiced === true ? '練習おわり。次は本番です<br>' : '') + head + (kind === 'noseA' ? NOSE_SUB_A : NOSE_SUB);
-  cue(DEMO + t, 'top fit', practiced === true ? '練習おわり。次は本番です' : t); demo(kind);
-  btn(practiced === true ? 'もう一度練習する' : (kind === 'noseA' ? 'まず練習する（右・左1回ずつ）' : 'まず練習する（2か所・記録しない）'), () => run(true), 'sub');
+  const t = (practiced === true ? '練習おわり。次は本番です<br>' : '') + head + (kind === 'noseA' ? axSub() : NOSE_SUB);
+  cue(DEMO + t, 'top fit', practiced === true ? '練習おわり。次は本番です' : kind === 'noseA' && !axLR() ? AX_VOICE : t); demo(kind);
+  btn(practiced === true ? 'もう一度練習する' : (kind === 'noseA' ? (axLR() ? 'まず練習する（右・左1回ずつ）' : 'まず練習する（各向き1回ずつ）') : 'まず練習する（2か所・記録しない）'), () => run(true), 'sub');
   btn(practiced === true ? '本番を始める' : '練習せずに始める', () => run(false));
 }
 const stepNoseA = practiced => noseIntro(14, NOSE_A_T, '目をつぶって<br><b>顔を中心に戻せるか</b>のテストです', 'noseA', runNoseA, practiced);
@@ -807,14 +833,16 @@ const stepNoseB = practiced => noseIntro(15, NOSE_B_T, '目をつぶって<br><b
 // → 「2秒止める」をやめ、戻すあいだを声で数えて、0 になったところ（ピッ）の位置で確定する（前は頭が止まったのを読んで鳴らしていた）
 // 前は8つの点のどれかへ鼻先を動かしてから戻していた。4.5°の基準は頭を回し切ってから戻す検査のものなので、流れを元の検査に合わせた。上下は基準に無いので測らない
 // 回すときは横顔になって顔が読めなくなることがある（そのときも「回した」とみなす）。戻ってきて頭の向きが止まった所で確定する
-const NOSE_A_SEQ = ['R', 'R', 'L', 'L'], NOSE_TURN = 15, NOSE_TURN_MAX = 7000, NOSE_COUNT = 5, NOSE_NEAR = 30;
+const NOSE_TURN = 15, NOSE_TURN_MAX = 7000, NOSE_COUNT = 5, NOSE_NEAR = 30;
+// 真ん中からどれだけ動いたか（カメラの読みの度。上下はカメラが回旋の 0.5/0.8 しか読まないので、回旋と同じ尺にそろえて合わせる。上下・ななめも同じ閾値で見るため）
+const noseOff = ref => { const hp = window.__hp, dR = hp.rot - ref.rot, dU = Number.isFinite(ref.up) && Number.isFinite(hp.up) ? (hp.up - ref.up) * CAM_ROT / CAM_UP : 0; return Number.isFinite(dR) ? Math.hypot(dR, dU) : NaN; };
 // 回し切ったか：頭の向き（カメラの読み）が真ん中から NOSE_TURN° 以上動いた、または顔が0.4秒続けて見えなくなった
 async function noseTurned(ref, max) {
   const my = tok, t0 = performance.now(); let lost = null;
   while (my === tok && performance.now() - t0 < max) {
     const now = performance.now();
     if (!last) { lost = lost ?? now; if (now - lost > 400) return true; }
-    else { lost = null; if (ref && window.__hp && Number.isFinite(ref.rot) && Math.abs(window.__hp.rot - ref.rot) >= NOSE_TURN) return true; }
+    else { lost = null; if (ref && window.__hp && noseOff(ref) >= NOSE_TURN) return true; }
     await sleep(16);
   }
   return false;
@@ -830,7 +858,7 @@ async function noseBack(ref) {
   rec = false; if (my !== tok) return null;
   beep(1320, 160);
   const end = a.filter(s => s.t >= performance.now() - 300), r = noseAgg(end.length >= 3 ? end : a.slice(-5));
-  const ok = !!(last && window.__hp && (!ref || !Number.isFinite(ref.rot) || Math.abs(window.__hp.rot - ref.rot) < NOSE_NEAR));
+  const ok = !!(last && window.__hp && (!ref || !Number.isFinite(ref.rot) || noseOff(ref) < NOSE_NEAR));
   return r && { ...r, reached: ok, shut: r3(a.filter(s => s.shut >= 0.5).length / Math.max(1, a.length)) };
 }
 async function runNoseA(practice) {
@@ -839,16 +867,17 @@ async function runNoseA(practice) {
     let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
     if (!last) return fail(stepNoseA, '顔が見つかりませんでした');
     const g = placeNose(), T = [];
-    const SEQ = practice ? ['R', 'L'] : NOSE_A_SEQ;
+    const SEQ = practice ? axDirs() : axSeq();
     for (const [i, k] of SEQ.entries()) {
       if (my !== tok) return;
       // 何回続くかを言う（2026-10-18 夜 宮崎さん「右に回すのが何回続くのか分からない。2回ってちゃんと言ってほしい」）。回数は画面の下に小さく出す（声では読まない）
-      const nk = SEQ.filter(x => x === k).length, ik = SEQ.slice(0, i + 1).filter(x => x === k).length, J = k === 'R' ? '右' : '左';
+      const nk = SEQ.filter(x => x === k).length, ik = SEQ.slice(0, i + 1).filter(x => x === k).length, J = DJ[k], lr = k === 'R' || k === 'L';
       const cnt = practice ? `<small>練習：${J}へ</small>` : `<small>${J}へ ${ik}回目／${nk}回</small>`;
       if (ik === 1 && !practice) { cue(`${i ? '次は' : 'まず'}${J}へ2回やります<small>同じ方向に2回続けます</small>`, 'top'); await voiceQuiet(5000); if (my !== tok) return; }
       g.tgt = null; g.hideC = false; cue('スマホを動かして、鼻先を真ん中の点に' + cnt, 'top', 'スマホを動かして、鼻先を真ん中の点に');
       const ref = await noseOn({ x: g.cx, y: g.cy }, Infinity); if (my !== tok) return;
-      cue(`目を閉じて、${J}へ回せるところまで回す` + cnt, 'top', `目を閉じて、${J}へ回せるところまで回す`);
+      const go = lr ? `目を閉じて、${J}へ回せるところまで回す` : `目を閉じて、${J}へ向けられるところまで向ける`;   // 上下・ななめは「向ける」
+      cue(go + cnt, 'top', go);
       const turned = await noseTurned(ref, NOSE_TURN_MAX); if (my !== tok) return;
       await voiceQuiet(3000); if (my !== tok) return;
       cue('目をつぶったまま、ゆっくり真ん中へ戻す' + cnt, 'top', '目をつぶったまま、ゆっくり真ん中へ戻す'); await voiceQuiet(4000); if (my !== tok) return;
@@ -860,7 +889,7 @@ async function runNoseA(practice) {
     if (my !== tok) return;
     G = null; cue('');
     if (practice) return stepNoseA(true);
-    const o = { trials: T, d: r3(g.d), cm: g.cm, flow: 'turn' }; o.sum = noseSum(T, true); RUN.noseA = o;
+    const o = { trials: T, d: r3(g.d), cm: g.cm, flow: 'turn', axes: [...AX] }; o.sum = noseSum(T, true); RUN.noseA = o;
     if (!o.sum.n) return fail(stepNoseA, '顔が見えている時間が短すぎました');
     staff(noseHTML(o, true, '目を閉じて真ん中へ戻したときの、最初の真ん中からのズレ'));
     done(stepNoseA);
