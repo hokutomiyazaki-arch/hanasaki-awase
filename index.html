@@ -531,8 +531,19 @@ function say(html) {
     jaV = jaV || maleJa(); if (!jaV) return; x.voice = jaV; speechSynthesis.speak(x); } catch (e) {}
 }
 // 読み上げが終わるまで待つ（2026-10-16 夜 宮崎さん「VOR で音声の説明が読み終わる前に次に進んでしまう」）。鳴っていなければすぐ返る。max ミリ秒で打ち切る
-async function voiceQuiet(max = 9000) { const my = tok, t0 = performance.now(); await sleep(150);
-  while (my === tok && VOICE && performance.now() - t0 < max && ((!VA.paused && !VA.ended) || (window.speechSynthesis && speechSynthesis.speaking))) await sleep(100); }
+// 説明の途中でも、画面をタップすれば声を止めて先へ進む（2026-10-18 夜 宮崎さん「説明の最中でもタップするとスキップできるようにしてほしい」）。✕やめる・音声・やり直しのボタンは除く
+let vSkipN = 0;
+const vSpeaking = () => (!VA.paused && !VA.ended) || (window.speechSynthesis && speechSynthesis.speaking);
+async function voiceQuiet(max = 9000) { const my = tok, t0 = performance.now(), sk = vSkipN; await sleep(150);
+  let hint = false;
+  while (my === tok && VOICE && sk === vSkipN && performance.now() - t0 < max && vSpeaking()) {
+    if (!hint && performance.now() - t0 > 600) { hint = true; note('画面をタップすると説明を飛ばせます'); }
+    await sleep(100); }
+  if (hint) note(''); }
+addEventListener('pointerdown', e => {
+  if ($('sMain').classList.contains('hide') || e.target.closest('#bVoice,#bQuit,#bRedo')) return;
+  vSkipN++; if (vSpeaking()) { VA.pause(); try { speechSynthesis.cancel(); } catch (x) {} }
+}, true);
 // 鳴らせなかった文は覚えておき、次に画面をさわったとき（押した中なら必ず鳴らせる）に鳴らす。
 // スマホは、押した瞬間の外で鳴らそうとすると断られることがある（2026-10-15 宮崎さん「また音声が出なくなっている」）
 let vPend = null;
