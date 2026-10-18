@@ -32,3 +32,5 @@
 ## 試し方（作り物のカメラ）
 - `python3 -m http.server` で開き、Chrome を `--use-fake-device-for-media-stream --use-file-for-fake-video-capture=<顔の映像.y4m>` で起動
 - `?test=1` を付けたときだけ `window.__noseAt`（鼻先の位置を差し替える関数）と `window.__hanasaki` が効く。ふだんは何もしない。Service Worker も登録しない
+
+- **判定：首の位置感覚**（2026-10-18 宮崎さん）：①（目を閉じて真ん中へ戻す）は、向き（右・左・上・下。ななめは2つに数えて3回ずつ）の平均が **4.5°** を超えたら「首の位置感覚の乱れ」。②は同じ数字を参考に出すだけ。基準は角度なので距離で変わらず、cm は距離×tan：76cm の的で 6.0cm、スマホが顔から30cmなら画面の上で 2.4cm（距離は黒目の大きさから目安を出す）。カメラが小さく読む分は戻して比べる（回旋÷0.8・上下÷0.5）。出典：Carrick CNS10「Tests of Vestibular Function Pt.2」[0:16:31–0:21:47]・note packet p.49–50／Revel 1991（PMID 2009044）／Dugailly 2015（PMID 26438174）。note packet の PMID 26538174 は打ち間違い
