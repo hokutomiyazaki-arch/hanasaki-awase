@@ -206,6 +206,11 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <button class="btn" data-plan="B" disabled>②を始める</button>
       </div>
       <div class="card">
+        <h3>③ ふだんの首の傾き<em>TILT</em></h3>
+        <p>楽にした姿勢のまま5秒、画面を見るだけ。目じりを結んだ線で、首がふだん右か左へ傾いていないかを測ります</p>
+        <button class="btn" data-plan="T" disabled>③を始める</button>
+      </div>
+      <div class="card">
         <h3>①→② を続けて<em>FULL</em></h3>
         <p>①のあとに②（それぞれ上で選んだ向き）。最後に両方の結果をまとめて出します</p>
         <canvas width="440" height="340" data-demo="noseAB"></canvas>
@@ -482,7 +487,7 @@ function brightness() {
 
 // ── 画面の部品
 let tok = 0, CUR = null;
-const REDO = () => ({ [NOSE_A_T]: stepNoseA, [NOSE_B_T]: stepNoseB });
+const REDO = () => ({ [NOSE_A_T]: stepNoseA, [NOSE_B_T]: stepNoseB, [TILT_T]: stepTilt });
 function show(step, title) {
   tok++;
   const i = PLAN ? (step === 0 ? 0 : PLAN.indexOf(REDO()[title]) + 1) : step, n = PLAN ? PLAN.length + 1 : 2;
@@ -858,6 +863,61 @@ function noseIntro(step, title, head, kind, run, practiced) {
 }
 const stepNoseA = practiced => noseIntro(14, NOSE_A_T, '目をつぶって<br><b>顔を中心に戻せるか</b>のテストです', 'noseA', runNoseA, practiced);
 const stepNoseB = practiced => noseIntro(15, NOSE_B_T, '目をつぶって<br><b>覚えた点に顔を向けられるか</b>のテストです', 'noseB', runNoseB, practiced);
+// ════ ③ ふだんの首の傾き（2026-10-19 宮崎さん「頸部の傾きチェックも1つ別の機能として入れておいて」）。元：fnt-camera-check「1. ふだんの首の傾き」と同じ測り方
+// 楽にした姿勢のまま5秒。目じりを結んだ線の傾き（＋＝本人の右へ）の中央値。スマホ自体の傾き（加速度）も測り、首の傾きと区別できないときは読まない
+// 元のアプリの見立て（傾いた側の卵形嚢）はここでは出さない。数字と「3°以上」の目安だけ
+const TILT_T = '③ ふだんの首の傾き', TILT_TH = 3;   // 度（仮。元のアプリと同じ）
+let MOT = null, motOn = false;
+async function motionStart() {   // iPhone は押したボタンの中で許可を取る
+  if (motOn) return true;
+  try { if (typeof DeviceMotionEvent === 'undefined') return false; if (typeof DeviceMotionEvent.requestPermission === 'function' && (await DeviceMotionEvent.requestPermission()) !== 'granted') return false; } catch (e) { return false; }
+  addEventListener('devicemotion', e => {
+    const g = e.accelerationIncludingGravity; if (!g || !Number.isFinite(g.x) || !Number.isFinite(g.y)) return;
+    const land = Math.abs((screen.orientation && screen.orientation.angle) || 0) % 180 === 90, a = Math.abs(land ? g.y : g.x), b = Math.abs(land ? g.x : g.y);
+    MOT = { t: performance.now(), deg: a + b < 4 ? null : Math.atan2(a, b) * 180 / Math.PI };   // deg：画面を立てたときの左右の傾き（向きは見ない）
+  });
+  motOn = true; return true;
+}
+const phoneDeg = () => MOT && MOT.deg != null && performance.now() - MOT.t < 1000 ? MOT.deg : null;
+async function record(ms, each) { const my = tok, t0 = performance.now(); rec = []; while (my === tok && performance.now() - t0 < ms) { if (each) each(); await sleep(50); } const r = rec || []; rec = null; return r; }
+const tiltWord = d => d == null || !Number.isFinite(d) ? '—' : Math.abs(d) < 0.5 ? 'ほぼまっすぐ' : `${d > 0 ? '右' : '左'}へ ${Math.abs(d).toFixed(1)}°`;
+function tiltHTML(T) {
+  return `首の傾き（目じりを結んだ線）：<b>${tiltWord(T.deg)}</b><br><span class="small">ぶれ ±${T.sd}°・口角の線 ${tiltWord(T.mouthDeg)}・スマホの傾き ${T.phone != null ? T.phone + '°' : '—'}</span>
+  <br>${T.over ? `<b>${T.over}へ ${Math.abs(T.deg).toFixed(1)}° 傾いています</b>（${TILT_TH}°以上）` : `${TILT_TH}°より小さい傾きです`}${T.note ? '<br><span class="small">※' + T.note + '</span>' : ''}<br><span class="small">目安：${TILT_TH}°以上を「傾きあり」とする（仮）。右・左は本人から見た向き。</span>`;
+}
+function stepTilt() {
+  show(1, TILT_T);
+  cue('<b>楽にして</b><br>画面を見るだけ<small>スマホは縦にまっすぐ</small>');
+  btn('始める', async () => {
+    const my = tok; clearBtns();
+    const mot = await motionStart();
+    let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
+    if (!last) return fail(stepTilt, '顔が見つかりませんでした');
+    if (mot) {   // スマホがまっすぐになるまで待つ（測れない端末・8秒たったら、そのまま進む）
+      const t1 = performance.now(); let okN = 0;
+      while (my === tok && performance.now() - t1 < 8000) { const p = phoneDeg(); if (p == null && performance.now() - t1 > 1500) break;
+        okN = p != null && p <= 2 ? okN + 1 : 0; if (okN >= 5) break;
+        cue(`スマホを<br>まっすぐ縦に<small>${p != null ? `スマホの傾き ${p.toFixed(1)}°（2°以内に）` : ''}</small>`, '', 'スマホをまっすぐ縦に'); await sleep(150); }
+    }
+    if (my !== tok) return;
+    cue('楽にしたまま<br>画面を見ていてください', 'thin low');
+    const ph = [], r = await record(5000, () => { const p = phoneDeg(); if (p != null) ph.push(p); });
+    if (my !== tok) return;
+    cue('');
+    if (r.length < 15) return fail(stepTilt, '顔が見えている時間が短すぎました');
+    // frame().ang は 本人の右目→左目 の線の向き。右目が下がる（本人の右へ傾く）と負になるので、符号を返して ＋＝右へ
+    const ang = r.map(({ pts }) => -frame(pts).ang * 180 / Math.PI);
+    const mo = r.map(({ pts }) => { const a = pts[P.mouth[0]], b = pts[P.mouth[1]]; return -Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI; });
+    const deg = med(ang), phone = ph.length ? med(ph) : null, note = []; let over = null;
+    if (Math.abs(deg) >= TILT_TH) {
+      if (phone != null && phone >= Math.abs(deg) - 1) note.push(`スマホの傾き ${phone.toFixed(1)}° と区別できないので読まない`);
+      else over = deg > 0 ? '右' : '左';
+    }
+    if (phone == null) note.push('スマホの傾きは測れていない（この端末・ブラウザでは取れない）');
+    RUN.tilt = { deg: r1(deg), sd: r1(sd(ang)), mouthDeg: r1(med(mo)), phone: r1(phone), over, note: note.join('／') || null, threshold: TILT_TH, n: r.length };
+    done(stepTilt);
+  });
+}
 // ①は元の検査（首の位置感覚＝JPSE）の流れ（2026-10-18。宮崎さんの基準「76cm先の的。閉眼で頭を回し、ゆっくり中心へ戻す（左右3回ずつの平均）」）：
 // 鼻先を真ん中の点に合わせる → 目を閉じて右（左）へ回せるところまで回す → ゆっくり真ん中へ戻す（5・4・3・2・1 の声）→「ピッ」で確定。右2回 → 左2回（元の検査は3回ずつ。2026-10-18 夜 宮崎さん「3回もやるのは長いから2回でいい」）
 // 2026-10-18 夜 宮崎さん「どのタイミングで終わりなのかが分からない。5、4、3、2、1 みたいなカウントの声があって戻ってくるといい」「2秒止めては要らない（すぐ戻してと入って、いつまで止めるか分からない）」
@@ -959,7 +1019,7 @@ async function runNoseB(practice) {
 }
 
 // ════ 次へ・終わり・記録（このアプリで作った部分）
-const TESTS = [['noseA', NOSE_A_T, stepNoseA], ['noseB', NOSE_B_T, stepNoseB]];
+const TESTS = [['noseA', NOSE_A_T, stepNoseA], ['noseB', NOSE_B_T, stepNoseB], ['tilt', TILT_T, stepTilt]];
 // cur の次に測るテストと、ボタンの文字。最後なら null
 function planNext(cur) {
   const i = cur === stepAlign ? -1 : PLAN.indexOf(cur), f = PLAN[i + 1];
@@ -978,17 +1038,19 @@ function saveRun() {
 }
 const LAB_A = '目を閉じて真ん中へ戻したときの、最初の真ん中からのズレ', LAB_B = '目を閉じて合わせた位置の、目を開けて合わせた位置からのズレ';
 const when = iso => new Date(iso).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-const planName = r => r.noseA && r.noseB ? '①→②' : r.noseA ? '①' : r.noseB ? '②' : '—';
+const planName = r => r.noseA && r.noseB ? '①→②' : r.noseA ? '①' : r.noseB ? '②' : r.tilt ? '③' : '—';
 function runHTML(r) {
   let h = '';
   if (r.noseA) h += `<p class="resHead">${NOSE_A_T}</p><div class="res">${noseHTML(r.noseA, true, LAB_A)}</div>`;
   if (r.noseB) h += `<p class="resHead">${NOSE_B_T}</p><div class="res">${noseHTML(r.noseB, false, LAB_B)}</div>`;
+  if (r.tilt) h += `<p class="resHead">${TILT_T}</p><div class="res">${tiltHTML(r.tilt)}</div>`;
   return h || '<div class="res">この記録には結果がありません。</div>';
 }
 function runText(r) {
   const L = [`首の固有受容感覚のテスト｜FNT の記録 ${when(r.started)}`];
   for (const [o, t] of [[r.noseA, NOSE_A_T], [r.noseB, NOSE_B_T]]) if (o) L.push(`${t}：ズレの平均 ${o.sum.meanDeg ?? '—'}°（画面の上 ${f2(o.sum.meanPx)}）・いちばん大きい向き ${o.sum.worst ? DJ[o.sum.worst] : '—'}／${noseTrialsText(o)}${o.sum.open.length ? '／目が開いていた回 ' + o.sum.open.map(k => DJ[k]).join('・') : ''}`);
   for (const [o, b] of [[r.noseA, true], [r.noseB, false]]) if (o) { const x = jpeText(o, b); if (x) L.push(x); }
+  if (r.tilt) L.push(`${TILT_T}：${tiltWord(r.tilt.deg)}（ぶれ ±${r.tilt.sd}°・口角の線 ${tiltWord(r.tilt.mouthDeg)}・スマホの傾き ${r.tilt.phone ?? '—'}°）${r.tilt.note ? '／' + r.tilt.note : ''}`);
   return L.join('\n');
 }
 let VIEW = null;   // 結果の画面で開いている記録
@@ -1007,12 +1069,12 @@ function finish() {
 }
 async function copyText(t, b, label) { let ok = false; try { await navigator.clipboard.writeText(t); ok = true; } catch (e) { const a = $('copyArea'); a.value = t; a.select(); try { ok = document.execCommand('copy'); } catch (_) {} } toast(ok ? 'コピーしました' : 'コピーできませんでした'); if (b && label) b.textContent = ok ? 'コピーしました' : label; }
 $('bCopy').onclick = () => VIEW && copyText(runText(VIEW), $('bCopy'), '記録をテキストでコピー');
-$('bAgain').onclick = () => { const r = VIEW; begin(r && r.noseA && r.noseB ? 'AB' : r && r.noseB ? 'B' : 'A'); };
+$('bAgain').onclick = () => { const r = VIEW; begin(r && r.noseA && r.noseB ? 'AB' : r && r.noseB ? 'B' : r && r.tilt && !r.noseA ? 'T' : 'A'); };
 $('bHome').onclick = $('bHistHome').onclick = () => goHome();
 $('bHistCopy').onclick = () => { const a = runsAll().slice().reverse(); copyText(a.length ? a.map(runText).join('\n\n') : '記録はまだありません', null); };
 function showHist() {
   const a = runsAll().slice().reverse();
-  $('histList').innerHTML = a.length ? a.map((r, i) => `<button class="histItem" data-i="${i}">${when(r.started)}　${planName(r)}<small>${[r.noseA && `① 平均 ${r.noseA.sum.meanDeg ?? '—'}°`, r.noseB && `② 平均 ${r.noseB.sum.meanDeg ?? '—'}°`].filter(Boolean).join('　')}</small></button>`).join('') : '<p class="desc">まだ記録はありません。</p>';
+  $('histList').innerHTML = a.length ? a.map((r, i) => `<button class="histItem" data-i="${i}">${when(r.started)}　${planName(r)}<small>${[r.noseA && `① 平均 ${r.noseA.sum.meanDeg ?? '—'}°`, r.noseB && `② 平均 ${r.noseB.sum.meanDeg ?? '—'}°`, r.tilt && `③ ${tiltWord(r.tilt.deg)}`].filter(Boolean).join('　')}</small></button>`).join('') : '<p class="desc">まだ記録はありません。</p>';
   $('histList').querySelectorAll('.histItem').forEach(b => { b.onclick = () => showEnd(a[+b.dataset.i], false); });
   screen('sHist');
 }
@@ -1029,7 +1091,7 @@ function goHome() { leaveStage(); screen('sHome'); }
 $('bQuit').onclick = () => goHome();
 
 async function begin(mode) {
-  PLAN = mode === 'AB' ? [stepNoseA, stepNoseB] : mode === 'B' ? [stepNoseB] : [stepNoseA];
+  PLAN = mode === 'AB' ? [stepNoseA, stepNoseB] : mode === 'B' ? [stepNoseB] : mode === 'T' ? [stepTilt] : [stepNoseA];
   newRun(); RUN.plan = PLAN.map(f => TESTS.find(t => t[2] === f)[0]);
   try { VA.muted = false; VA.src = 'voice/unlock.mp3'; VA.play().catch(() => {}); } catch (e) {}   // スマホは、押したときに一度鳴らしておかないと後で音が出ない
   noseStart();
